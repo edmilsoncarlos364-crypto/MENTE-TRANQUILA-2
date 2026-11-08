@@ -1,0 +1,440 @@
+name: Criar APK
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Criar ficheiros pequenos
+        run: |
+          mkdir -p www assets
+          cat > package.json <<'EOF_PKG'
+          {
+            "name": "mente-tranquila",
+            "version": "1.0.0",
+            "private": true,
+            "dependencies": {
+              "@capacitor/android": "^6.2.0",
+              "@capacitor/cli": "^6.2.0",
+              "@capacitor/core": "^6.2.0"
+            }
+          }
+          EOF_PKG
+          cat > capacitor.config.json <<'EOF_CAP'
+          {
+            "appId": "com.mentetranquila.app",
+            "appName": "Mente Tranquila",
+            "webDir": "www",
+            "backgroundColor": "#eef6f9"
+          }
+          EOF_CAP
+          cat > assets/icon-only.svg <<'EOF_S1'
+          <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+          <defs>
+          <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3b97bd"/><stop offset="1" stop-color="#4fb398"/></linearGradient>
+          <radialGradient id="gl" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffffff" stop-opacity=".35"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+          </defs>
+          <rect width="1024" height="1024" fill="url(#bg)"/>
+          <circle cx="512" cy="500" r="380" fill="url(#gl)"/>
+          <g fill="#ffffff">
+          <path transform="rotate(-64 512 640)" opacity=".7" d="M512,640 C450,550 452,430 512,350 C572,430 574,550 512,640Z"/>
+          <path transform="rotate(64 512 640)" opacity=".7" d="M512,640 C450,550 452,430 512,350 C572,430 574,550 512,640Z"/>
+          <path transform="rotate(-32 512 640)" opacity=".88" d="M512,640 C450,550 452,430 512,350 C572,430 574,550 512,640Z"/>
+          <path transform="rotate(32 512 640)" opacity=".88" d="M512,640 C450,550 452,430 512,350 C572,430 574,550 512,640Z"/>
+          <path d="M512,640 C450,550 452,430 512,350 C572,430 574,550 512,640Z"/>
+          </g>
+          <path d="M340,680 Q512,740 684,680" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" opacity=".7"/>
+          <path d="M410,722 Q512,764 614,722" fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round" opacity=".4"/>
+          </svg>
+          EOF_S1
+          cat > assets/icon-foreground.svg <<'EOF_S2'
+          <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+          <defs>
+          <radialGradient id="gl" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffffff" stop-opacity=".35"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+          </defs>
+          <circle cx="512" cy="500" r="380" fill="url(#gl)"/>
+          <g fill="#ffffff">
+          <path transform="rotate(-64 512 640)" opacity=".7" d="M512,640 C450,550 452,430 512,350 C572,430 574,550 512,640Z"/>
+          <path transform="rotate(64 512 640)" opacity=".7" d="M512,640 C450,550 452,430 512,350 C572,430 574,550 512,640Z"/>
+          <path transform="rotate(-32 512 640)" opacity=".88" d="M512,640 C450,550 452,430 512,350 C572,430 574,550 512,640Z"/>
+          <path transform="rotate(32 512 640)" opacity=".88" d="M512,640 C450,550 452,430 512,350 C572,430 574,550 512,640Z"/>
+          <path d="M512,640 C450,550 452,430 512,350 C572,430 574,550 512,640Z"/>
+          </g>
+          <path d="M340,680 Q512,740 684,680" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" opacity=".7"/>
+          <path d="M410,722 Q512,764 614,722" fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round" opacity=".4"/>
+          </svg>
+          EOF_S2
+          cat > assets/icon-background.svg <<'EOF_S3'
+          <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+          <defs>
+          <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3b97bd"/><stop offset="1" stop-color="#4fb398"/></linearGradient>
+          </defs>
+          <rect width="1024" height="1024" fill="url(#bg)"/>
+          </svg>
+          EOF_S3
+      - name: Criar index.html
+        run: |
+          cat > www/index.html <<'EOF_HTML'
+          <!DOCTYPE html>
+          <html lang="pt-PT">
+          <head>
+          <meta charset="utf-8">
+          <meta name="theme-color" content="#3b97bd">
+          <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+          <title>Mente Tranquila</title>
+          <style>
+          :root{--bg:#eef6f9;--card:#fff;--tx:#1d4652;--mut:#5c7c86;--pri:#3f9cc0;--grn:#52ae93;--soft:#dcedf3;--line:#d3e5ea;--ring:#bfe3ee;
+          box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+          @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f2229;--card:#173039;--tx:#e3f1f4;--mut:#93b3bc;--soft:#1e3d48;--line:#26485a;--ring:#2a5a6a;color-scheme:dark}}
+          :root[data-theme="dark"]{--bg:#0f2229;--card:#173039;--tx:#e3f1f4;--mut:#93b3bc;--soft:#1e3d48;--line:#26485a;--ring:#2a5a6a;color-scheme:dark}
+          *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+          html{scroll-padding-top:env(safe-area-inset-top,0px)}
+          body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100%}
+          h1,h2,h3{font-family:Georgia,"Times New Roman",serif;font-weight:600;margin:0 0 .4em;line-height:1.2}
+          h1{font-size:1.7rem}h2{font-size:1.35rem}h3{font-size:1.05rem}
+          p{margin:0 0 .8em}
+          .wrap{max-width:560px;margin:0 auto;padding:18px 16px 110px}
+          header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:14px}
+          header p{color:var(--mut);margin:0}
+          #th{border:1px solid var(--line);background:var(--card);border-radius:50%;width:42px;height:42px;font-size:1.1rem;color:var(--tx)}
+          .page{display:none}.page.on{display:block}
+          .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;margin-bottom:14px}
+          button{font:inherit;color:inherit;cursor:pointer}
+          :focus-visible{outline:3px solid var(--pri);outline-offset:2px}
+          .btn{border:0;border-radius:14px;padding:13px 20px;font-weight:700;background:var(--pri);color:#fff;min-height:48px}
+          .btn.g{background:var(--grn)}.btn.o{background:var(--soft);color:var(--tx)}
+          .sos{width:100%;border:0;border-radius:22px;padding:20px;background:linear-gradient(135deg,#52ae93,#3f9cc0);color:#fff;font:600 1.25rem Georgia,serif;margin-bottom:14px;box-shadow:0 8px 22px rgba(63,156,192,.3)}
+          .sos small{display:block;font:400 .9rem system-ui,sans-serif;opacity:.92;margin-top:2px}
+          .quote{font:500 1.3rem/1.4 Georgia,serif}
+          .tag{display:inline-block;background:var(--soft);border-radius:99px;padding:2px 12px;font-size:.85rem;color:var(--mut);margin-bottom:8px}
+          .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+          .tile{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;text-align:left;font-weight:700}
+          .tile span{display:block;font-size:1.6rem}
+          .chips{display:flex;gap:8px;margin-bottom:14px}
+          .chip{flex:1;border:2px solid var(--line);background:var(--card);border-radius:14px;padding:10px;font-weight:700}
+          .chip.on{border-color:var(--pri);background:var(--soft)}
+          .stage{display:flex;flex-direction:column;align-items:center;padding:10px 0}
+          .orb-w{width:240px;height:240px;border-radius:50%;background:var(--soft);display:grid;place-items:center;border:2px solid var(--ring)}
+          .orb{width:220px;height:220px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#a8dcec,#52ae93);transform:scale(.55);box-shadow:0 0 40px rgba(82,174,147,.45)}
+          .lab{font:600 1.35rem Georgia,serif;margin-top:16px;text-align:center;min-height:1.7em}
+          .tm{color:var(--mut);margin-bottom:12px}
+          .row{display:flex;align-items:center;gap:12px}
+          .snd{display:flex;align-items:center;gap:12px;width:100%;background:var(--card);border:2px solid var(--line);border-radius:18px;padding:14px;margin-bottom:10px;text-align:left}
+          .snd.on{border-color:var(--grn);background:var(--soft)}
+          .snd i{font-style:normal;font-size:1.7rem}.snd b{flex:1}.snd em{font-style:normal;color:var(--mut);font-size:.9rem}
+          input[type=range]{width:100%;accent-color:var(--pri)}
+          .mood{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
+          .mood button{border:2px solid var(--line);background:var(--card);border-radius:14px;padding:8px 2px;font-size:.75rem;font-weight:700}
+          .mood button span{display:block;font-size:1.6rem}
+          .mood button.on{border-color:var(--pri);background:var(--soft)}
+          textarea{width:100%;min-height:96px;border:2px solid var(--line);border-radius:14px;background:var(--bg);color:var(--tx);font:inherit;padding:12px;margin-bottom:12px;resize:vertical}
+          .week{display:flex;justify-content:space-between;text-align:center;font-size:.8rem;color:var(--mut)}
+          .week div span{display:block;font-size:1.5rem;min-height:2rem}
+          .ent{border-top:1px solid var(--line);padding:12px 0}
+          .ent small{color:var(--mut)}.ent button{float:right;border:0;background:none;color:var(--mut)}
+          details{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:10px}
+          summary{font-weight:700;cursor:pointer}
+          details p{margin:10px 0 0;color:var(--mut)}
+          .bar{height:8px;border-radius:9px;background:var(--soft);overflow:hidden;margin:14px 0}
+          .bar div{height:100%;width:0;background:var(--grn);transition:width 1s linear}
+          .note{font-size:.85rem;color:var(--mut);text-align:center}
+          nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));z-index:5}
+          nav button{flex:1;border:0;background:none;font-size:.68rem;font-weight:700;color:var(--mut);padding:4px 0;border-radius:12px}
+          nav button span{display:block;font-size:1.3rem}
+          nav button.on{color:var(--pri);background:var(--soft)}
+          .ov{position:fixed;inset:0;background:var(--bg);z-index:20;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;overflow:auto}
+          .ov.on{display:flex}
+          @media (prefers-reduced-motion:reduce){.orb{transition-duration:.01s!important}}
+          #p-chat .wrap{padding-bottom:170px}
+          .msgs{display:flex;flex-direction:column;gap:10px;padding-bottom:14px}
+          .mg{max-width:88%;padding:11px 14px;border-radius:18px;white-space:pre-wrap;overflow-wrap:anywhere}
+          .mg.u{align-self:flex-end;background:var(--pri);color:#fff;border-bottom-right-radius:6px}
+          .mg.a{align-self:flex-start;background:var(--card);border:1px solid var(--line);border-bottom-left-radius:6px}
+          .acts,.sug{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+          .acts button,.sug button{border:1px solid var(--pri);background:var(--soft);border-radius:99px;padding:7px 13px;font-weight:700;font-size:.85rem;color:var(--tx)}
+          .cbar{position:fixed;left:0;right:0;bottom:calc(70px + env(safe-area-inset-bottom,0px));background:var(--bg);padding:8px 12px;border-top:1px solid var(--line);z-index:4}
+          .cin{max-width:536px;margin:0 auto;display:flex;gap:8px;align-items:flex-end}
+          .cin textarea{margin:0;min-height:48px;max-height:120px;border-radius:24px;padding:12px 16px;flex:1;resize:none}
+          .cin .btn{border-radius:50%;width:48px;padding:0;font-size:1.1rem}
+          .dots i{font-style:normal;display:inline-block;animation:bl 1.2s infinite}.dots i:nth-child(2){animation-delay:.2s}.dots i:nth-child(3){animation-delay:.4s}
+          @keyframes bl{0%,60%,100%{opacity:.25}30%{opacity:1}}
+          </style>
+          </head>
+          <body>
+          <div class="wrap">
+          <header><div><h1>Mente Tranquila</h1><p id="gr"></p></div><button id="th" aria-label="Mudar tema">🌙</button></header>
+
+          <section id="p-home" class="page on">
+           <button class="sos" id="sosb">Preciso de me acalmar<small>Toque aqui para respirar já, com calma</small></button>
+           <div class="card"><span class="tag" id="qc"></span><p class="quote" id="qt"></p><button class="btn o" id="qn">Outra frase</button></div>
+           <div class="grid">
+            <button class="tile" data-go="resp"><span>🌬️</span>Respirar</button>
+            <button class="tile" data-go="sons"><span>🎧</span>Sons relaxantes</button>
+            <button class="tile" data-go="med"><span>🧘</span>Meditar</button>
+            <button class="tile" data-go="diario"><span>📓</span>Como me sinto</button>
+            <button class="tile" data-go="chat"><span>💬</span>Conversar</button>
+            <button class="tile" data-go="dicas"><span>💡</span>Dicas</button>
+          </div>
+           <p class="note" style="margin-top:18px">Esta aplicação é gratuita e serve de apoio ao bem-estar. Não substitui um psicólogo ou outro profissional de saúde. Se sentir que não está bem há muito tempo, procure ajuda profissional.</p>
+          </section>
+
+          <section id="p-resp" class="page">
+           <h2>Respiração guiada</h2>
+           <p>Escolha o tempo e siga o círculo: o círculo cresce, inspire; o círculo diminui, expire.</p>
+           <div class="chips" id="rch"></div>
+           <div class="stage"><div class="orb-w"><div class="orb" id="orb"></div></div>
+            <div class="lab" id="lab">Pronto?</div><div class="tm" id="tm">&nbsp;</div>
+            <button class="btn g" id="rgo">Começar</button></div>
+          </section>
+
+          <section id="p-sons" class="page">
+           <h2>Sons relaxantes</h2>
+           <p>Toque num som para ouvir. Pode misturar vários ao mesmo tempo.</p>
+           <div id="sl"></div>
+           <div class="card"><b>Volume</b><input type="range" id="vol" min="0" max="100" value="60" aria-label="Volume"></div>
+           <button class="btn o" id="stopall">Parar todos os sons</button>
+          </section>
+
+          <section id="p-med" class="page">
+           <h2>Meditação guiada</h2>
+           <div id="ml"></div>
+           <div class="card" id="mp" style="display:none">
+            <span class="tag" id="mtt"></span>
+            <p class="quote" id="mtx" style="min-height:5.5em"></p>
+            <div class="bar"><div id="mb"></div></div>
+            <div class="row" style="flex-wrap:wrap"><button class="btn" id="mpause">Pausar</button><button class="btn o" id="mstop">Parar</button><label class="note"><input type="checkbox" id="mvoz" checked> Voz</label></div>
+           </div>
+          </section>
+
+          <section id="p-diario" class="page">
+           <h2>Diário emocional</h2>
+           <div class="card"><h3>Como se sente agora?</h3><div class="mood" id="md"></div>
+           <textarea id="dt" placeholder="Escreva aqui o que está a sentir (opcional)"></textarea>
+           <button class="btn g" id="ds">Guardar</button></div>
+           <div class="card"><h3>Os seus últimos 7 dias</h3><div class="week" id="wk"></div><p id="ws" class="note" style="margin:12px 0 0"></p></div>
+           <div class="card"><h3>Registos</h3><div id="dl"></div></div>
+          </section>
+
+          <section id="p-dicas" class="page">
+           <h2>Dicas para uma vida mais tranquila</h2>
+           <div id="tl"></div>
+          </section>
+          </div>
+
+          <section id="p-chat" class="page"><div class="wrap">
+          <div class="row" style="justify-content:space-between"><h2 style="margin:0">Conversa</h2><button class="btn o" id="cnew">Nova conversa</button></div>
+          <p class="note" style="text-align:left;margin:6px 0 14px">Assistente de bem-estar com respostas automáticas. Funciona sem internet. Não é uma pessoa nem substitui um psicólogo.</p>
+          <div class="msgs" id="cm"></div><div class="sug" id="cs"></div></div>
+          <div class="cbar"><div class="cin"><textarea id="ci" rows="1" placeholder="Escreva a sua mensagem..." aria-label="Mensagem"></textarea><button class="btn" id="csd" aria-label="Enviar">➤</button></div></div>
+          </section>
+
+          <nav id="nv"></nav>
+
+          <div class="ov" id="sos">
+           <h2>Está tudo bem. Vamos respirar juntos.</h2>
+           <div class="stage"><div class="orb-w"><div class="orb" id="orb2"></div></div><div class="lab" id="lab2"></div></div>
+           <p id="sm" style="max-width:340px;min-height:3.2em;color:var(--mut)"></p>
+           <button class="btn" id="sosx">Já me sinto melhor</button>
+           <p class="note" style="margin-top:14px;max-width:340px">Se estiver em perigo ou sentir que não consegue ficar em segurança, ligue já para os serviços de emergência da sua zona ou peça ajuda a alguém perto de si.</p>
+          </div>
+
+          <script>
+          const $=s=>document.querySelector(s);
+          const ld=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
+          const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+          const esc=s=>{const d=document.createElement('div');d.textContent=s;return d.innerHTML};
+
+          /* Navegação */
+          const PG=[['home','Início','🏠'],['resp','Respirar','🌬️'],['sons','Sons','🎧'],['med','Meditar','🧘'],['diario','Diário','📓'],['chat','Conversa','💬']];
+          $('#nv').innerHTML=PG.map(p=>`<button data-go="${p[0]}"><span>${p[2]}</span>${p[1]}</button>`).join('');
+          function go(id){
+            document.querySelectorAll('.page').forEach(e=>e.classList.toggle('on',e.id=='p-'+id));
+            document.querySelectorAll('#nv button').forEach(b=>b.classList.toggle('on',b.dataset.go==id));
+            if(id!='resp')B1.stop(); if(id!='med')medStop();
+            if(id=='diario')drawDiary();if(id=='chat')chatOpen();
+            scrollTo(0,0);
+          }
+          document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b)go(b.dataset.go)});
+          const h=new Date().getHours();
+          $('#gr').textContent=h<12?'Bom dia. Respire fundo.':h<19?'Boa tarde. Faça uma pausa.':'Boa noite. Hora de acalmar.';
+          let dark=matchMedia('(prefers-color-scheme:dark)').matches;
+          function theme(){document.documentElement.dataset.theme=dark?'dark':'light';$('#th').textContent=dark?'☀️':'🌙'}
+          $('#th').onclick=()=>{dark=!dark;theme()};theme();
+
+          /* Frases */
+          const Q=[['Esperança','Mesmo os dias difíceis passam. Amanhã é um novo começo.'],['Coragem','Ter medo e dar o passo na mesma é ser corajoso.'],['Paciência','Tudo o que é bom leva o seu tempo. Não precisa de ter pressa.'],['Motivação','Um pequeno passo hoje já é um grande passo.'],['Esperança','Depois da chuva, o sol volta sempre.'],['Paciência','Respire. Não precisa de resolver tudo agora.'],['Coragem','Você já superou dias muito difíceis. Vai conseguir outra vez.'],['Motivação','Não tem de ser perfeito. Tem de ser feito, aos poucos.'],['Esperança','As suas preocupações de hoje não são o fim da sua história.'],['Paciência','Cuidar de si não é egoísmo. É necessário.'],['Coragem','Pedir ajuda é um sinal de força, não de fraqueza.'],['Motivação','Faça só uma coisa de cada vez. Isso já chega.'],['Esperança','Há sempre uma luz, mesmo quando ainda não a consegue ver.'],['Paciência','Os sentimentos são como as ondas: chegam, crescem e vão embora.']];
+          let qi=Math.floor((Date.now()-new Date(new Date().getFullYear(),0,0))/864e5)%Q.length;
+          function showQ(){$('#qc').textContent=Q[qi][0];$('#qt').textContent='“'+Q[qi][1]+'”'}
+          $('#qn').onclick=()=>{qi=(qi+1)%Q.length;showQ()};showQ();
+
+          /* Respiração */
+          function Breather(c,lab,tm,onCycle){
+            const P=[['Inspire pelo nariz',4,1],['Segure o ar',4,1],['Expire devagar pela boca',6,.55]];
+            let i=0,l=0,rem=0,iv=null,fin=true,done=null;
+            const ph=()=>{const x=P[i];lab.textContent=x[0];c.style.transition=i==1?'none':`transform ${x[1]}s ease-in-out`;c.style.transform=`scale(${x[2]})`;l=x[1]};
+            const show=()=>{if(tm)tm.textContent=fin?Math.floor(rem/60)+':'+String(rem%60).padStart(2,'0'):'\u00a0'};
+            const tick=()=>{l--;rem--;show();
+              if(fin&&rem<=0){stop();lab.textContent='Muito bem. Sinta a calma.';done&&done();return}
+              if(l<=0){i=(i+1)%3;if(i==0&&onCycle)onCycle();ph()}};
+            function start(sec,cb){stop();fin=isFinite(sec);rem=sec;done=cb;i=0;c.style.transition='none';c.style.transform='scale(.55)';void c.offsetWidth;ph();show();iv=setInterval(tick,1000)}
+            function stop(){clearInterval(iv);iv=null;c.style.transition='transform .6s';c.style.transform='scale(.55)';lab.textContent='Pronto?'}
+            return{start,stop,get on(){return iv!==null}}
+          }
+          const B1=Breather($('#orb'),$('#lab'),$('#tm'));
+          let rmin=1;
+          $('#rch').innerHTML=[1,3,5].map(m=>`<button class="chip${m==1?' on':''}" data-m="${m}">${m} min</button>`).join('');
+          $('#rch').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;rmin=+b.dataset.m;document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x==b));B1.stop();$('#rgo').textContent='Começar'};
+          $('#rgo').onclick=()=>{if(B1.on){B1.stop();$('#rgo').textContent='Começar';$('#tm').innerHTML='&nbsp;'}else{B1.start(rmin*60,()=>{$('#rgo').textContent='Começar'});$('#rgo').textContent='Parar'}};
+
+          /* SOS */
+          const SM=['Está seguro/a. Este momento vai passar.','Sinta os pés no chão. Solte os ombros.','Não precisa de lutar contra o que sente. Só respire.','Olhe à sua volta e diga a si mesmo/a: estou aqui, estou bem.','Cada expiração leva um pouco de tensão embora.','Está a fazer muito bem. Continue devagar.'];
+          let si=0;const B2=Breather($('#orb2'),$('#lab2'),null,()=>{si=(si+1)%SM.length;$('#sm').textContent=SM[si]});
+          $('#sosb').onclick=()=>{si=0;$('#sm').textContent=SM[0];$('#sos').classList.add('on');B2.start(Infinity)};
+          $('#sosx').onclick=()=>{B2.stop();$('#sos').classList.remove('on')};
+
+          /* Sons (gerados no telemóvel, sem internet) */
+          let ac,mg,nb,vol=.6;const on={};
+          function ctx(){if(!ac){ac=new(window.AudioContext||window.webkitAudioContext)();mg=ac.createGain();mg.gain.value=vol;mg.connect(ac.destination);const n=ac.sampleRate*2,b=ac.createBuffer(1,n,ac.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;nb=b}if(ac.state=='suspended')ac.resume()}
+          const flt=(t,f,q)=>{const x=ac.createBiquadFilter();x.type=t;x.frequency.value=f;if(q)x.Q.value=q;return x};
+          const nz=()=>{const s=ac.createBufferSource();s.buffer=nb;s.loop=true;s.start();return s};
+          const lfo=(hz,amt,dest)=>{const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=hz;g.gain.value=amt;o.connect(g);g.connect(dest);o.start();return o};
+          function chirp(){const t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain(),f=2200+Math.random()*1800,n=2+Math.floor(Math.random()*3);o.type='sine';g.gain.value=0;o.connect(g);g.connect(mg);
+            for(let k=0;k<n;k++){const s=t+k*.12;o.frequency.setValueAtTime(f,s);o.frequency.linearRampToValueAtTime(f*(1.1+Math.random()*.3),s+.08);g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.12,s+.02);g.gain.linearRampToValueAtTime(0,s+.1)}
+            o.start(t);o.stop(t+n*.12+.1)}
+          const MK={
+           chuva(){const n=nz(),g=ac.createGain();g.gain.value=.3;n.connect(flt('highpass',700)).connect(flt('lowpass',7000)).connect(g);g.connect(mg);return()=>{n.stop();g.disconnect()}},
+           vento(){const n=nz(),f=flt('bandpass',500,.8),g=ac.createGain();g.gain.value=.9;n.connect(f).connect(g);g.connect(mg);const l=lfo(.15,260,f.frequency);return()=>{n.stop();l.stop();g.disconnect()}},
+           mar(){const n=nz(),g=ac.createGain();g.gain.value=.3;n.connect(flt('lowpass',650)).connect(g);g.connect(mg);const l=lfo(.1,.25,g.gain);return()=>{n.stop();l.stop();g.disconnect()}},
+           passaros(){let a=true,t;(function lp(){if(!a)return;chirp();t=setTimeout(lp,700+Math.random()*2600)})();return()=>{a=false;clearTimeout(t)}},
+           musica(){const C=[[220,261.63,329.63],[174.61,220,261.63],[196,246.94,293.66],[164.81,207.65,246.94]],g=ac.createGain(),f=flt('lowpass',900);g.gain.value=0;g.gain.linearRampToValueAtTime(.2,ac.currentTime+3);f.connect(g);g.connect(mg);
+            const os=C[0].map(fr=>{const o=ac.createOscillator();o.frequency.value=fr;o.connect(f);o.start();return o});let ci=0,a=true,bt;
+            const cv=setInterval(()=>{ci=(ci+1)%4;os.forEach((o,k)=>o.frequency.setTargetAtTime(C[ci][k],ac.currentTime,1.5))},8000);
+            const PN=[523.25,587.33,659.25,783.99,880];
+            (function bell(){if(!a)return;const t=ac.currentTime,o=ac.createOscillator(),b=ac.createGain();o.type='triangle';o.frequency.value=PN[Math.floor(Math.random()*5)];b.gain.setValueAtTime(0,t);b.gain.linearRampToValueAtTime(.12,t+.05);b.gain.exponentialRampToValueAtTime(.001,t+3);o.connect(b);b.connect(mg);o.start(t);o.stop(t+3.1);bt=setTimeout(bell,2000+Math.random()*2500)})();
+            return()=>{a=false;clearTimeout(bt);clearInterval(cv);g.gain.setTargetAtTime(0,ac.currentTime,.3);setTimeout(()=>os.forEach(o=>o.stop()),1200)}}
+          };
+          const SN=[['chuva','🌧️','Chuva','Água suave a cair'],['vento','🍃','Vento','Brisa entre as árvores'],['mar','🌊','Mar','Ondas calmas'],['passaros','🐦','Pássaros','Canto ao amanhecer'],['musica','🎹','Música instrumental','Notas lentas e suaves']];
+          $('#sl').innerHTML=SN.map(s=>`<button class="snd" data-s="${s[0]}" aria-pressed="false"><i>${s[1]}</i><b>${s[2]}<br><em>${s[3]}</em></b><span>▶</span></button>`).join('');
+          function tg(b){const k=b.dataset.s;ctx();if(on[k]){on[k]();delete on[k]}else on[k]=MK[k]();b.classList.toggle('on',!!on[k]);b.setAttribute('aria-pressed',!!on[k]);b.lastChild.textContent=on[k]?'⏸':'▶'}
+          $('#sl').onclick=e=>{const b=e.target.closest('.snd');if(b)tg(b)};
+          $('#vol').oninput=e=>{vol=e.target.value/100;if(mg)mg.gain.value=vol};
+          $('#stopall').onclick=()=>document.querySelectorAll('.snd.on').forEach(tg);
+
+          /* Meditação */
+          const S=(a)=>a.map(t=>({t,s:25}));
+          const MED=[
+           ['Manhã','🌅','Começar o dia com calma',S(['Sente-se com as costas direitas, de forma confortável. Feche os olhos devagar.','Inspire fundo pelo nariz e solte o ar pela boca. Faça isto mais duas vezes.','Sinta o seu corpo a acordar. Mexa os dedos das mãos e dos pés.','Pense numa coisa boa que pode acontecer hoje. Deixe-a crescer dentro de si.','Diga baixinho: hoje vou fazer o meu melhor, e isso chega.','Respire fundo uma última vez. Quando quiser, abra os olhos com calma.'])],
+           ['Tarde','☀️','Organizar os pensamentos',S(['Pare por um momento. Sente-se e apoie bem os pés no chão.','Respire devagar. Imagine que os seus pensamentos são nuvens no céu.','Não precisa de os travar. Deixe cada nuvem passar.','Agora escolha uma só coisa importante para fazer a seguir. Só uma.','O resto pode esperar. Solte os ombros e a testa.','Respire fundo. Volte ao seu dia com a cabeça mais leve.'])],
+           ['Noite','🌙','Soltar o dia e descansar',S(['Deite-se ou sente-se de forma confortável. Feche os olhos.','Com cada expiração, deixe o corpo ficar mais pesado e mais solto.','Relaxe a testa, o rosto, o pescoço e os ombros.','Relaxe os braços, as costas, a barriga, as pernas e os pés.','Agradeça por uma coisa boa que aconteceu hoje, mesmo pequena.','O dia terminou. Pode descansar. Respire devagar e deixe o sono chegar.'])]
+          ];
+          $('#ml').innerHTML=MED.map((m,i)=>`<div class="card row"><span style="font-size:2rem">${m[1]}</span><div style="flex:1"><h3 style="margin:0">${m[0]}: ${m[2]}</h3><span class="note">cerca de 2 minutos e meio</span></div><button class="btn g" data-m="${i}">Ouvir</button></div>`).join('');
+          let mt=null,mi=0,ml=0,mpz=false,cur=null;
+          function say(t){try{speechSynthesis.cancel();if($('#mvoz').checked){const u=new SpeechSynthesisUtterance(t);u.lang='pt-PT';u.rate=.85;speechSynthesis.speak(u)}}catch(e){}}
+          function medStep(){const st=cur[3][mi];$('#mtx').textContent=st.t;say(st.t);ml=st.s;$('#mb').style.transition='none';$('#mb').style.width=(mi/cur[3].length*100)+'%'}
+          function medStop(){clearInterval(mt);mt=null;try{speechSynthesis.cancel()}catch(e){}$('#mp').style.display='none'}
+          $('#ml').onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;medStop();cur=MED[b.dataset.m];mi=0;mpz=false;$('#mpause').textContent='Pausar';$('#mtt').textContent=cur[0]+': '+cur[2];$('#mp').style.display='block';medStep();
+            mt=setInterval(()=>{if(mpz)return;ml--;const n=cur[3].length;$('#mb').style.transition='width 1s linear';$('#mb').style.width=((mi+1-ml/cur[3][mi].s)/n*100)+'%';
+             if(ml<=0){mi++;if(mi>=n){clearInterval(mt);$('#mtx').textContent='Sessão terminada. Parabéns por ter tirado este tempo para si.';$('#mb').style.width='100%';say('Sessão terminada. Parabéns por ter tirado este tempo para si.');return}medStep()}},1000);
+            $('#mp').scrollIntoView({behavior:'smooth'})};
+          $('#mpause').onclick=()=>{mpz=!mpz;$('#mpause').textContent=mpz?'Continuar':'Pausar';try{mpz?speechSynthesis.pause():speechSynthesis.resume()}catch(e){}};
+          $('#mstop').onclick=medStop;
+
+          /* Diário */
+          const MO=[['feliz','😊','Feliz'],['tranquila','😌','Tranquila'],['cansada','😴','Cansada'],['preocupada','😟','Preocupada'],['triste','😢','Triste']];
+          let ent=ld('mt_diario',[]),sel=null;
+          $('#md').innerHTML=MO.map(m=>`<button data-k="${m[0]}"><span>${m[1]}</span>${m[2]}</button>`).join('');
+          $('#md').onclick=e=>{const b=e.target.closest('button');if(!b)return;sel=b.dataset.k;document.querySelectorAll('#md button').forEach(x=>x.classList.toggle('on',x==b))};
+          const dk=d=>d.toLocaleDateString('sv-SE');
+          $('#ds').onclick=()=>{if(!sel){alert('Escolha primeiro como se sente.');return}
+            const n=new Date();ent.unshift({id:Date.now(),d:dk(n),h:n.toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'}),m:sel,n:$('#dt').value.trim()});
+            sv('mt_diario',ent);$('#dt').value='';sel=null;document.querySelectorAll('#md button').forEach(x=>x.classList.remove('on'));drawDiary()};
+          const em=k=>MO.find(m=>m[0]==k);
+          function drawDiary(){
+            let w='',cnt={};
+            for(let i=6;i>=0;i--){const d=new Date(Date.now()-i*864e5),k=dk(d),es=ent.filter(x=>x.d==k);es.forEach(x=>cnt[x.m]=(cnt[x.m]||0)+1);
+              w+=`<div><span>${es.length?em(es[0].m)[1]:'·'}</span>${d.toLocaleDateString('pt-PT',{weekday:'short'}).replace('.','')}</div>`}
+            $('#wk').innerHTML=w;
+            const top=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0];
+            const bad=(cnt.triste||0)+(cnt.preocupada||0);
+            $('#ws').textContent=!top?'Ainda não tem registos esta semana.':bad>=4?'Tem-se sentido preocupado/a ou triste vários dias. Falar com alguém de confiança ou com um profissional pode ajudar.':`Nesta semana, sentiu-se mais vezes ${em(top)[2].toLowerCase()}.`;
+            $('#dl').innerHTML=ent.length?ent.slice(0,20).map(x=>`<div class="ent"><button data-del="${x.id}" aria-label="Apagar">✕</button><b>${em(x.m)[1]} ${em(x.m)[2]}</b> <small>${x.d} às ${x.h}</small>${x.n?'<p style="margin:6px 0 0">'+esc(x.n)+'</p>':''}</div>`).join(''):'<p class="note">Ainda não escreveu nada. Escolha uma emoção acima e toque em Guardar.</p>';
+          }
+          $('#dl').onclick=e=>{const b=e.target.closest('[data-del]');if(!b)return;ent=ent.filter(x=>x.id!=b.dataset.del);sv('mt_diario',ent);drawDiary()};
+
+          /* Dicas */
+          const T=[['Respire no stress: 4-4-6','Quando sentir o coração a acelerar, inspire contando até 4, segure até 4 e expire até 6. Repita 5 vezes.'],['Técnica 5-4-3-2-1','Diga 5 coisas que vê, 4 que toca, 3 que ouve, 2 que cheira e 1 que saboreia. Isto traz a sua mente para o presente.'],['Escreva o que o preocupa','Passe as preocupações para o papel. Depois separe: o que posso resolver hoje e o que não depende de mim.'],['Organize o seu tempo','Escolha só 3 tarefas importantes por dia. Faça pausas de 5 minutos a cada hora de trabalho ou estudo.'],['Durma melhor','Deite-se e acorde sempre à mesma hora. Evite o telemóvel 30 minutos antes de dormir.'],['Mexa o corpo','Uma caminhada de 15 minutos já ajuda a baixar o stress. Alongue o pescoço e os ombros durante o dia.'],['Coma e beba bem','Beba água ao longo do dia, faça refeições a horas certas e reduza o café e as bebidas energéticas.'],['Diga “não” sem culpa','Aceitar tudo cansa. Dizer não de forma calma protege o seu descanso.'],['Fale com alguém','Partilhar o que sente com um amigo ou familiar alivia. Se a ansiedade ou a tristeza durarem muito tempo, procure um psicólogo ou médico.']];
+          $('#tl').innerHTML=T.map(t=>`<details><summary>${t[0]}</summary><p>${t[1]}</p></details>`).join('')+'<p class="note">Estas dicas são de apoio e não substituem o acompanhamento de um profissional de saúde.</p>';
+
+          /* Conversa (assistente de bem-estar, sem internet) */
+          const N=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+          const BR=[['Respirar agora','sos'],['Respiração guiada','resp']];
+          const R=[
+          {k:['suicid','me matar','matar-me','quero morrer','nao quero viver','acabar com tudo','tirar a minha vida','fazer mal a mim','me magoar'],t:['Sinto muito que esteja com uma dor tão grande. Obrigado/a por me contar. Não está sozinho/a e a sua vida importa.\n\nPor favor, fale agora com alguém de confiança ou ligue para os serviços de emergência da sua zona. Se estiver em perigo, não fique sozinho/a e afaste-se de tudo com que se possa magoar.\n\nSou só um assistente automático e não posso substituir ajuda humana. Pode respirar comigo um minuto enquanto pede ajuda?'],b:[['Respirar agora','sos']]},
+          {k:['ansios','ansiedade','panico','coracao acelerado','aflit','nervos'],t:['Percebo, a ansiedade é muito desconfortável, mas passa. Vamos tentar já: inspire contando até 4 e expire contando até 6, cinco vezes.\n\nO que lhe passa pela cabeça neste momento?','Obrigado/a por partilhar. Quando a ansiedade aparece, ajuda trazer a mente para o presente: diga 5 coisas que vê, 4 que toca e 3 que ouve.\n\nQuer fazer a respiração guiada comigo?'],b:BR},
+          {k:['stress','estress','sobrecarreg','pressao','prazo','exame','prova','muito trabalho'],t:['Parece que tem muita coisa em cima de si. Escolha só 3 tarefas importantes para hoje e deixe o resto para depois. Faça uma pausa de 5 minutos a cada hora.\n\nO que o/a está a pesar mais agora?','O stress prolongado cansa o corpo e a mente. Um bom primeiro passo é uma pausa curta com respiração lenta. Depois, escreva num papel o que pode resolver hoje e o que não depende de si.'],b:[['Respirar','resp'],['Dicas','dicas']]},
+          {k:['triste','tristeza','chorar','deprim','vazio','desanim','sem vontade'],t:['Sinto muito que se sinta assim. As emoções difíceis são válidas e não precisa de as esconder. Quer contar-me o que aconteceu?','Obrigado/a por confiar em mim. Tente ser gentil consigo hoje. Uma caminhada curta, um copo de água ou falar com alguém querido podem aliviar um pouco.\n\nSe esta tristeza durar muitos dias, procure um profissional de saúde.'],b:[['Escrever no diário','diario'],['Meditar','med']]},
+          {k:['dormir','sono','insonia','nao durmo','acordo de noite'],t:['Dormir mal é difícil. Tente deitar-se sempre à mesma hora, afastar o telemóvel 30 minutos antes e respirar devagar na cama. Experimente também a meditação da noite e o som de chuva.\n\nO que o/a mantém acordado/a, o corpo ou os pensamentos?'],b:[['Meditação da noite','med'],['Sons','sons']]},
+          {k:['raiva','irritad','furios','zangad','revoltad'],t:['É normal sentir raiva. Antes de reagir, afaste-se um momento, inspire fundo e expire devagar algumas vezes. Só depois decida o que dizer ou fazer.\n\nO que provocou esta raiva?'],b:BR},
+          {k:['sozinh','solidao','ninguem','abandon'],t:['Sentir-se sozinho/a dói muito. Obrigado/a por me contar. Experimente enviar uma mensagem simples a alguém de quem gosta, como “estou a pensar em ti”. Pequenos contactos ajudam.\n\nHá alguém com quem gostasse de falar?'],b:[['Escrever no diário','diario']]},
+          {k:['cansad','exaust','sem energia','esgotad'],t:['O cansaço também é um sinal de que o seu corpo precisa de cuidado. Tente beber água, comer algo leve e descansar 10 minutos, sem telemóvel.\n\nTem dormido bem nos últimos dias?'],b:[['Meditar','med'],['Sons','sons']]},
+          {k:['medo','preocup','receio','inseguranca','inseguro','insegura'],t:['Ter medo é humano. Muitas preocupações são sobre coisas que ainda não aconteceram. Pergunte a si mesmo/a: isto está a acontecer agora, ou só na minha cabeça?\n\nQuer escrever a preocupação e ver o que pode fazer sobre ela?'],b:[['Escrever no diário','diario'],['Dicas','dicas']]},
+          {k:['motiva','coragem','esperanca','desistir','forca'],t:['Não precisa de ter tudo resolvido. Um passo pequeno hoje já conta. Já superou dias difíceis antes e pode fazê-lo de novo.\n\nQual é o passo mais pequeno que consegue dar agora?'],b:[['Ver frase do dia','home']]},
+          {k:['feliz','contente','alegre','estou bem','melhorei','tranquil'],t:['Que bom ouvir isso! Aproveite este momento. Se quiser, escreva no diário o que o/a fez sentir assim, para se lembrar nos dias mais difíceis.'],b:[['Escrever no diário','diario']]},
+          {k:['obrigad','valeu','agradec'],t:['De nada. Estou aqui sempre que precisar. Cuide de si.']}
+          ];
+          const G={t:['Olá! Fico contente por estar aqui. Como se sente hoje?']};
+          const D={t:['Obrigado/a por partilhar. Conte-me um pouco mais: como se sente neste momento, no corpo e nos pensamentos?','Estou a ouvir. Quer falar sobre o que sente, ou prefere fazer um exercício de respiração ou meditação?'],b:[['Respirar','resp'],['Meditar','med']]};
+          const WEL='Olá, eu sou o assistente da Mente Tranquila. Pode falar comigo sobre stress, emoções e bem-estar. Como se sente hoje?';
+          const SUG=['Estou com ansiedade','Estou stressado/a','Não consigo dormir','Sinto-me triste','Preciso de motivação'];
+          let CH=ld('mt_chat',[]);
+          function mkMsg(m){const d=document.createElement('div');d.className='mg '+(m.r=='u'?'u':'a');d.textContent=m.t;
+           if(m.b){const a=document.createElement('div');a.className='acts';m.b.forEach(x=>{const b=document.createElement('button');b.textContent=x[0];b.onclick=()=>x[1]=='sos'?$('#sosb').click():go(x[1]);a.appendChild(b)});d.appendChild(a)}
+           $('#cm').appendChild(d);return d}
+          const bottom=()=>setTimeout(()=>scrollTo(0,document.body.scrollHeight),30);
+          function drawChat(){$('#cm').innerHTML='';if(!CH.length){CH=[{r:'a',t:WEL}]}CH.forEach(mkMsg);
+           $('#cs').innerHTML=CH.length<=1?SUG.map(s=>`<button>${s}</button>`).join(''):'';bottom()}
+          function chatOpen(){drawChat()}
+          function reply(t){const n=N(t);let r=R.find(x=>x.k.some(k=>n.includes(k)));
+           if(!r&&/^(ola|oi|ei|hey|bom dia|boa tarde|boa noite)\b/.test(n)&&n.length<30)r=G;if(!r)r=D;
+           return{r:'a',t:r.t[Math.floor(Math.random()*r.t.length)],b:r.b}}
+          function send(t){t=(t||'').trim();if(!t)return;CH.push({r:'u',t});mkMsg(CH[CH.length-1]);$('#cs').innerHTML='';$('#ci').value='';$('#ci').style.height='';
+           const ty=document.createElement('div');ty.className='mg a dots';ty.innerHTML='<i>●</i> <i>●</i> <i>●</i>';$('#cm').appendChild(ty);bottom();
+           setTimeout(()=>{ty.remove();const m=reply(t);CH.push(m);mkMsg(m);sv('mt_chat',CH.slice(-60));bottom()},800+Math.random()*500)}
+          $('#csd').onclick=()=>send($('#ci').value);
+          $('#ci').addEventListener('keydown',e=>{if(e.key=='Enter'&&!e.shiftKey){e.preventDefault();send($('#ci').value)}});
+          $('#ci').addEventListener('input',e=>{e.target.style.height='auto';e.target.style.height=Math.min(e.target.scrollHeight,120)+'px'});
+          $('#cs').onclick=e=>{const b=e.target.closest('button');if(b)send(b.textContent)};
+          $('#cnew').onclick=()=>{CH=[];sv('mt_chat',[]);drawChat()};
+
+          go('home');
+          </script>
+          </body>
+          </html>
+          EOF_HTML
+      - name: Gerar icones PNG
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y librsvg2-bin
+          for n in icon-only icon-foreground icon-background; do
+            rsvg-convert -w 1024 -h 1024 -o assets/$n.png assets/$n.svg
+          done
+      - run: npm install
+      - run: npx cap add android
+      - run: npx @capacitor/assets generate --android --iconBackgroundColor '#3b97bd' --iconBackgroundColorDark '#3b97bd'
+      - run: sed -i 's/<activity/<activity android:screenOrientation="portrait"/' android/app/src/main/AndroidManifest.xml
+      - run: npx cap sync android
+      - run: cd android && chmod +x gradlew && ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Mente-Tranquila-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
